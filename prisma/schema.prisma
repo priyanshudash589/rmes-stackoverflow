@@ -1,0 +1,199 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  MANAGER
+}
+
+enum QuestionStatus {
+  OPEN
+  ACTIVE
+  RESOLVED
+}
+
+enum ParentType {
+  QUESTION
+  ANSWER
+}
+
+enum EntityType {
+  ANSWER
+  COMMENT
+}
+
+enum ActionType {
+  ANSWER_ADDED
+  COMMENT_ADDED
+  UPVOTE
+  EDITED
+  MARK_RESOLVED
+  MARK_REOPENED
+}
+
+enum NotificationEntityType {
+  QUESTION
+  ANSWER
+  COMMENT
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @db.VarChar(255)
+  role      Role     @default(USER)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  authAccount   AuthAccount?
+  authSessions  AuthSession[]
+  authOtps      AuthOtp[]
+  questions     Question[]
+  answers       Answer[]
+  comments      Comment[]
+  votes         Vote[]
+  notificationsReceived Notification[] @relation("recipient")
+  notificationsSent     Notification[] @relation("actor")
+
+  @@map("users")
+}
+
+model AuthAccount {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String    @unique @map("user_id") @db.Uuid
+  email        String    @unique @db.VarChar(255)
+  passwordHash String?   @map("password_hash")
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  lastLogin    DateTime? @map("last_login")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("auth_accounts")
+}
+
+model AuthSession {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  sessionToken String   @unique @map("session_token")
+  ipAddress    String?  @map("ip_address")
+  userAgent    String?  @map("user_agent")
+  createdAt    DateTime @default(now()) @map("created_at")
+  expiresAt    DateTime @map("expires_at")
+  revoked      Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sessionToken])
+  @@index([expiresAt])
+  @@map("auth_sessions")
+}
+
+model AuthOtp {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @db.VarChar(255)
+  code      String   @db.VarChar(6)
+  expiresAt DateTime @map("expires_at")
+  attempts  Int      @default(0)
+  used      Boolean  @default(false)
+  userId    String?  @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([expiresAt])
+  @@map("auth_otps")
+}
+
+model Question {
+  id          String         @id @default(uuid()) @db.Uuid
+  title       String
+  description String
+  tags        String[]
+  status      QuestionStatus @default(OPEN)
+  createdBy   String         @map("created_by") @db.Uuid
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @default(now()) @updatedAt @map("updated_at")
+
+  author   User      @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  answers  Answer[]
+  comments Comment[]
+
+  @@index([status])
+  @@map("questions")
+}
+
+model Answer {
+  id         String   @id @default(uuid()) @db.Uuid
+  questionId String   @map("question_id") @db.Uuid
+  content    String
+  createdBy  String   @map("created_by") @db.Uuid
+  voteCount  Int      @default(0) @map("vote_count")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
+
+  question Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  author   User      @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  comments Comment[]
+  votes    Vote[]
+
+  @@index([questionId])
+  @@map("answers")
+}
+
+model Comment {
+  id         String     @id @default(uuid()) @db.Uuid
+  parentType ParentType @map("parent_type")
+  parentId   String     @map("parent_id") @db.Uuid
+  content    String
+  createdBy  String     @map("created_by") @db.Uuid
+  createdAt  DateTime   @default(now()) @map("created_at")
+
+  author   User      @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  question Question? @relation(fields: [parentId], references: [id], onDelete: Cascade, map: "comments_question_fk")
+  answer   Answer?   @relation(fields: [parentId], references: [id], onDelete: Cascade, map: "comments_answer_fk")
+  votes    Vote[]
+
+  @@index([parentType, parentId])
+  @@map("comments")
+}
+
+model Vote {
+  id         String     @id @default(uuid()) @db.Uuid
+  entityType EntityType @map("entity_type")
+  entityId   String     @map("entity_id") @db.Uuid
+  userId     String     @map("user_id") @db.Uuid
+  createdAt  DateTime   @default(now()) @map("created_at")
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answer  Answer?  @relation(fields: [entityId], references: [id], onDelete: Cascade, map: "votes_answer_fk")
+  comment Comment? @relation(fields: [entityId], references: [id], onDelete: Cascade, map: "votes_comment_fk")
+
+  @@unique([entityType, entityId, userId])
+  @@index([entityType, entityId])
+  @@map("votes")
+}
+
+model Notification {
+  id          String                 @id @default(uuid()) @db.Uuid
+  recipientId String                 @map("recipient_id") @db.Uuid
+  actorId     String                 @map("actor_id") @db.Uuid
+  actionType  ActionType             @map("action_type")
+  entityType  NotificationEntityType @map("entity_type")
+  entityId    String                 @map("entity_id") @db.Uuid
+  isRead      Boolean                @default(false) @map("is_read")
+  createdAt   DateTime               @default(now()) @map("created_at")
+
+  recipient User @relation("recipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  actor     User @relation("actor", fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, isRead])
+  @@map("notifications")
+}
+

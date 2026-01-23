@@ -1,0 +1,16 @@
+ROLE:
+You are a senior prompt engineer and AI agent architect.
+
+TASK:
+Develop an MVP of like-stackoverflow a Q&A portal for my organisation with final acceptance of the solution that leads to leader board.
+
+EVALUATE ON:
+1. Auth should be organisation mail id whcih has @ruggedmonitoring.com and "my mail : priyanshudashofficial@gmail.com" for all the testing purposes. 
+2. Opening the site it should not ask for Auth. the user is allowed to see the main home page where all the solutions and search and leaderboard. Also the user is Allowed to see the profile of other USers. 
+3. if the user wants to ask question or like the comment or answer to some question then he needs to login. 
+4. All the logins are session based. 
+5. Some points to be provided to maintain a leader board. 
+6. The respective solutions which are being accepted as final solution then it must be viewed both the users profile i.e. the one who has asked and the one whose comment is accepted as answer to it. 
+
+OUTPUT FORMAT (STRICT):
+
