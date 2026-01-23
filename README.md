@@ -21,6 +21,42 @@ This README tracks day-by-day progress for the internal Stack Overflow MVP.
 - Added search, tag filtering, and status-based sorting on the home page, plus ask-question, question-detail (with answers/comments/votes), notifications, and login screens.
 - Seeded the database with a manager, a regular user, and sample questions/answers to make the environment usable immediately on `npm run dev`.
 
+### Wireframes (Day 2 MVP)
+- **Home / Question List**
+  - Top bar: product name, notifications bell, “Sign in” / user menu.
+  - Main content: search bar + tag filter row; below that, a vertical list of `QuestionCard`s showing status pill, title, short description, tags, author, time, and answer count; primary CTA “Ask Question”.
+- **Ask Question**
+  - Simple form with three blocks: title input, long description textarea, tag picker (2–4 predefined tags) plus inline character counters; footer buttons “Post question” (primary) and “Cancel”.
+- **Question Detail**
+  - Header: status pill (Open/Active/Resolved), tags, title, optional “Mark resolved / Reopen” button for author/manager.
+  - Body: description, ask/updated meta, then “Answers” list (each answer with vote widget, content, author, created-at, comments), and at bottom a “Your Answer” card with editor and submit button.
+- **Auth (OTP)**
+  - Step 1: small centered card, email input + “Continue”.
+  - Step 2: six-digit code input (and optional name for new users), “Sign in” button, link to “Use different email”.
+- **Notifications**
+  - List of cards, each line like “Alice answered your question”, timestamp, “View” + “Mark read”; unread items highlighted with a left border.
+
+### Future Leaderboard / Recognition System (Design Sketch)
+- **Goals**
+  - Reward helpful participation (good questions and answers) without introducing toxic competition or downvotes.
+  - Use points and lightweight badges primarily as **recognition and discovery**, not as hard authority signals.
+- **Data Model & Scoring**
+  - Use existing `user_points` table (user_id, points, reason, entity_type, entity_id, created_at) as an **append-only ledger** of point events.
+  - Example point rules (tunable per org):
+    - +5 for posting an answer that gets at least N upvotes.
+    - +2 for the first upvote on an answer (per unique user per answer), capped per day.
+    - +1 for asking a question that receives at least one answer.
+    - Optional: +1 when a manager edits/curates someone’s content for clarity.
+  - No negative points; corrections/abuse are handled via moderation, not scores.
+- **Leaderboards & Surfaces**
+  - **Team-wide leaderboard**: “Top contributors this month” showing name, role, total points, and counts of questions/answers.
+  - **Profile summary**: on hover or profile page, show recent contributions and badges (e.g., “Helpful Answerer”, “Onboarding Guide”).
+  - **Question detail hints**: subtle text like “Answered by Priyanshu (Top contributor: DevOps)” to provide context, not authority.
+- **Guardrails**
+  - Prevent self-reward: no points for upvoting your own content; manager tooling to revoke mis-awarded points.
+  - Time-boxed stats (30/90 days) to avoid permanent hierarchies; emphasize **recent helpfulness**.
+  - Phase 1: keep this **disabled in UI** and use the schema only as a future extension so it doesn’t distort behaviour during the MVP rollout.
+
 ### Issues Encountered (Day 2)
 - **Multiple dev ports (3000 & 3001)**: Two `npm run dev` processes (Windows + WSL) were running; Next.js automatically bound the second server to 3001. Resolved by keeping only a single dev server.
 - **Prisma env config**: The initial `.env.local` used `DB_*` variables only. Prisma required `DATABASE_URL`, so we added a Postgres connection string and a dedicated `.env` (mirroring `.env.local`) for CLI use.
