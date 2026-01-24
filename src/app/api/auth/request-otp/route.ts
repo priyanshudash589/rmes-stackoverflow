@@ -1,3 +1,19 @@
+/**
+ * Email OTP Authentication - Request OTP Endpoint
+ * 
+ * This endpoint implements email-based OTP (One-Time Password) authentication.
+ * It is the primary and only authentication method for this internal tool.
+ * 
+ * Flow:
+ * 1. User provides email address
+ * 2. System generates 6-digit OTP code
+ * 3. OTP is sent via email (or logged in dev mode)
+ * 4. User verifies OTP in /api/auth/verify-otp
+ * 
+ * Note: passwordHash in AuthAccount is optional/nullable, allowing this
+ * email OTP-only approach while keeping the schema flexible for future
+ * password support if needed.
+ */
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";

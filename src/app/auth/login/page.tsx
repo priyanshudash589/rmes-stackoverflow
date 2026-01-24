@@ -1,3 +1,15 @@
+/**
+ * Login Page - Email OTP Authentication
+ * 
+ * This page implements the email OTP authentication flow:
+ * 1. User enters email address
+ * 2. System sends 6-digit OTP code via email
+ * 3. User enters OTP code to verify
+ * 4. For new users, name is collected
+ * 5. Session is created and user is redirected
+ * 
+ * This is the only authentication method - no passwords required.
+ */
 "use client";
 
 import { useState } from "react";

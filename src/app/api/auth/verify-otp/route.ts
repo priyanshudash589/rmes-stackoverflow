@@ -1,3 +1,21 @@
+/**
+ * Email OTP Authentication - Verify OTP Endpoint
+ * 
+ * This endpoint verifies the email OTP code and creates a user session.
+ * It is the second step in the email OTP authentication flow.
+ * 
+ * Flow:
+ * 1. User provides email and 6-digit OTP code
+ * 2. System validates OTP (checks expiry, attempts, code match)
+ * 3. If valid, creates/updates user account (no password required)
+ * 4. Creates session and sets HTTP-only cookie
+ * 
+ * Security:
+ * - OTP expires after 10 minutes
+ * - Max 3 verification attempts per OTP
+ * - Rate limiting on OTP requests (1 minute cooldown)
+ * - Sessions expire after 7 days
+ */
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";

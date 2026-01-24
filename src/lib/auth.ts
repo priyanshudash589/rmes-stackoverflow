@@ -1,3 +1,14 @@
+/**
+ * Authentication Utilities
+ * 
+ * This module provides authentication functions for the email OTP-based auth system.
+ * The application uses email OTP as the primary (and currently only) authentication method.
+ * 
+ * Key functions:
+ * - getCurrentUser: Retrieves the current authenticated user from session cookie
+ * - generateSessionToken: Creates a secure random session token
+ * - generateOtpCode: Generates a 6-digit OTP code for email verification
+ */
 import { cookies } from "next/headers";
 import { prisma } from "./prisma";
 import { SESSION } from "./constants";

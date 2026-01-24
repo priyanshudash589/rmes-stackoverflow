@@ -17,6 +17,11 @@ const PUBLIC_ROUTES = [
   "/api/auth/me",
 ];
 
+// Routes that require authentication but are not mutations
+const AUTHENTICATED_GET_ROUTES = [
+  "/api/profile",
+];
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -25,13 +30,16 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check for protected API routes (POST, PATCH, DELETE)
+  // Check for authenticated routes (GET, POST, PATCH, DELETE)
+  const isAuthenticatedRoute = AUTHENTICATED_GET_ROUTES.some((route) =>
+    pathname.startsWith(route)
+  );
   const isProtectedApiRoute = PROTECTED_API_ROUTES.some((route) =>
     pathname.startsWith(route)
   );
   const isMutationMethod = ["POST", "PATCH", "DELETE"].includes(request.method);
 
-  if (isProtectedApiRoute && isMutationMethod) {
+  if (isAuthenticatedRoute || (isProtectedApiRoute && isMutationMethod)) {
     const sessionToken = request.cookies.get(SESSION.COOKIE_NAME)?.value;
 
     if (!sessionToken) {

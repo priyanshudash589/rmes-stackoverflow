@@ -28,6 +28,12 @@ export const VALIDATION = {
   TAGS_MAX: 4,
 } as const;
 
+/**
+ * OTP (One-Time Password) Configuration
+ * 
+ * Email OTP is the primary authentication method for this application.
+ * These constants control the OTP generation, validation, and rate limiting.
+ */
 export const OTP = {
   LENGTH: 6,
   EXPIRY_MINUTES: 10,
